@@ -1,4 +1,4 @@
-package dangtien.tapbi.com.funmusic;
+package dangtien.tapbi.com.music;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("dangtien.tapbi.com.funmusic", appContext.getPackageName());
+        assertEquals("dangtien.tapbi.com.music", appContext.getPackageName());
     }
 }

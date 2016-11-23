@@ -1,4 +1,4 @@
-package dangtien.tapbi.com.funmusic;
+package dangtien.tapbi.com.music;
 
 import org.junit.Test;
 
