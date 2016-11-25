@@ -33,8 +33,6 @@ public class MainActivity  extends FragmentActivity {
         tabLayout = (TabLayout) findViewById(R.id.tab_layout1);
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setTabsFromPagerAdapter(mainPagerAdapter);
-        tabLayout.getTabAt(0).setText("Nổi Bật");
-        tabLayout.getTabAt(1).setText("Mới Nhất");
-        tabLayout.getTabAt(2).setText("Nghe Nhiều");
     }
+
 }
