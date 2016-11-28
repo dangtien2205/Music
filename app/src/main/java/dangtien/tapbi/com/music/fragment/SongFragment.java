@@ -1,10 +1,12 @@
-package dangtien.tapbi.com.music.activity;
+package dangtien.tapbi.com.music.fragment;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -20,31 +22,35 @@ import java.util.ArrayList;
 
 import dangtien.tapbi.com.music.R;
 import dangtien.tapbi.com.music.adapter.list_adapter.SongAdapter;
-import dangtien.tapbi.com.music.fragment.MainFragment;
 import dangtien.tapbi.com.music.mode.SongInfo;
 import dangtien.tapbi.com.music.mode.SongResponse;
 
-public class AlbumActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class SongFragment extends Fragment implements AdapterView.OnItemClickListener {
     private String idAlbum;
     private ImageView imageAlbum;
     private ArrayList<SongInfo> songInfos;
     private SongAdapter songAdapter;
     private ListView lvSong;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_album);
 
-        initControls();
+    public SongFragment(String idAlbum) {
+        this.idAlbum = idAlbum;
     }
 
-    private void initControls() {
-        Intent intent = getIntent();
-        idAlbum = intent.getStringExtra(MainFragment.ID);
-        imageAlbum = (ImageView)findViewById(R.id.iwImageAlbum1);
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.layout_fragment_song,container,false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+//        Intent intent = getIntent();
+//        idAlbum = intent.getStringExtra(ListAlbumFragment.ID);
+        imageAlbum = (ImageView)view.findViewById(R.id.iwImageAlbum1);
         songInfos = new ArrayList<>();
-        songAdapter = new SongAdapter(songInfos,this);
-        lvSong=(ListView) findViewById(R.id.lvListSong);
+        songAdapter = new SongAdapter(songInfos,getContext());
+        lvSong=(ListView) view.findViewById(R.id.lvListSong);
         lvSong.setAdapter(songAdapter);
         lvSong.setOnItemClickListener(this);
         String url = "http://api.mp3.zing.vn/api/mobile/playlist/getsonglist?requestdata={%22length%22:200,%22id%22:%22"
@@ -54,7 +60,7 @@ public class AlbumActivity extends AppCompatActivity implements AdapterView.OnIt
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        (findViewById(R.id.layoutPlay)).setVisibility(View.VISIBLE);
+        (view.findViewById(R.id.layoutPlay)).setVisibility(View.VISIBLE);
     }
 
     private class LoadListMusicTask extends AsyncTask<String,Void,ArrayList<SongInfo>> {
@@ -84,7 +90,7 @@ public class AlbumActivity extends AppCompatActivity implements AdapterView.OnIt
             super.onPostExecute(list);
             songInfos.addAll(list);
             String linkApi="http://image.mp3.zdn.vn/";
-            Glide.with(AlbumActivity.this).load(linkApi+songInfos.get(0).getThumbnail())
+            Glide.with(SongFragment.this).load(linkApi+songInfos.get(0).getThumbnail())
                     .thumbnail(0.5f)
                     .crossFade()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

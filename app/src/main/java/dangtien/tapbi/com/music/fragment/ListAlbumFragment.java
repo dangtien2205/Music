@@ -1,6 +1,5 @@
 package dangtien.tapbi.com.music.fragment;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -20,7 +19,7 @@ import java.util.ArrayList;
 
 import dangtien.tapbi.com.music.App;
 import dangtien.tapbi.com.music.R;
-import dangtien.tapbi.com.music.activity.AlbumActivity;
+import dangtien.tapbi.com.music.activity.MainActivity;
 import dangtien.tapbi.com.music.adapter.list_adapter.AlbumAdapter;
 import dangtien.tapbi.com.music.mode.AlbumInfo;
 import dangtien.tapbi.com.music.mode.AlbumResponse;
@@ -28,7 +27,7 @@ import dangtien.tapbi.com.music.mode.AlbumResponse;
 /**
  * Created by TienBi on 21/09/2016.
  */
-public class MainFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class ListAlbumFragment extends Fragment implements AdapterView.OnItemClickListener {
     public static String ID="id";
     private AlbumAdapter albumAdapter;
     private static final String URL1 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:13,%22start%22:0,%22sort%22:%22total_play%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
@@ -37,7 +36,13 @@ public class MainFragment extends Fragment implements AdapterView.OnItemClickLis
     private String ur;
     private ArrayList<AlbumInfo> albumInfos;
     private GridView gr;
-    public MainFragment(int n) {
+
+    public void setOnClickItemAlbum(OnClickItemAlbum onClickItemAlbum) {
+        this.onClickItemAlbum = onClickItemAlbum;
+    }
+
+    private OnClickItemAlbum onClickItemAlbum;
+    public ListAlbumFragment(int n) {
         switch (n){
             case 1:
                 ur=URL1;
@@ -56,7 +61,7 @@ public class MainFragment extends Fragment implements AdapterView.OnItemClickLis
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.layout_fragment_main,container,false);
+        View view=inflater.inflate(R.layout.layout_fragment_list_album,container,false);
         return view;
     }
 
@@ -73,9 +78,9 @@ public class MainFragment extends Fragment implements AdapterView.OnItemClickLis
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent intent = new Intent(App.getContext(), AlbumActivity.class);
-        intent.putExtra(ID,albumInfos.get(position).getPlaylist_id());
-        startActivity(intent);
+//        onClickItemAlbum.OnClick(albumInfos.get(position).getPlaylist_id());
+        SongFragment songFragment = new SongFragment(albumInfos.get(position).getPlaylist_id()) ;
+        ((MainActivity)getActivity()).replaceFragment(songFragment);
     }
 
 
@@ -107,5 +112,9 @@ public class MainFragment extends Fragment implements AdapterView.OnItemClickLis
             albumInfos.addAll(list);
             albumAdapter.notifyDataSetChanged();
         }
+    }
+
+    public interface OnClickItemAlbum{
+        void OnClick(String id);
     }
 }

@@ -1,10 +1,9 @@
 package dangtien.tapbi.com.music.adapter.pager_adapter;
 
-import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import dangtien.tapbi.com.music.fragment.MainFragment;
+import dangtien.tapbi.com.music.fragment.ListAlbumFragment;
 
 /**
  * Created by TienBi on 21/09/2016.
@@ -14,16 +13,16 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
         super(fm);
     }
     @Override
-    public Fragment getItem(int position) {
+    public ListAlbumFragment getItem(int position) {
         switch (position){
             case 0:
-                MainFragment f1= new MainFragment(1);
+                ListAlbumFragment f1= new ListAlbumFragment(1);
                 return f1;
             case 1:
-                MainFragment f2=new MainFragment(2);
+                ListAlbumFragment f2=new ListAlbumFragment(2);
                 return f2;
             case 2:
-                MainFragment f3=new MainFragment(3);
+                ListAlbumFragment f3=new ListAlbumFragment(3);
                 return f3;
         }
         return null;
