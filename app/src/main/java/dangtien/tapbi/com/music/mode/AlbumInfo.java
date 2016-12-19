@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Created by toannt on 25/11/2016.
  */
 
-public class AlbumInfo implements Serializable{
+public class AlbumInfo{
     private String playlist_id;
     private String title;
     private String artist;

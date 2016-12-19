@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.ArrayList;
 
 import dangtien.tapbi.com.music.R;
+import dangtien.tapbi.com.music.activity.MainActivity;
 import dangtien.tapbi.com.music.adapter.list_adapter.SongAdapter;
 import dangtien.tapbi.com.music.mode.SongInfo;
 import dangtien.tapbi.com.music.mode.SongResponse;
@@ -45,8 +46,6 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-//        Intent intent = getIntent();
-//        idAlbum = intent.getStringExtra(ListAlbumFragment.ID);
         imageAlbum = (ImageView)view.findViewById(R.id.iwImageAlbum1);
         songInfos = new ArrayList<>();
         songAdapter = new SongAdapter(songInfos,getContext());
@@ -60,7 +59,7 @@ public class SongFragment extends Fragment implements AdapterView.OnItemClickLis
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        (view.findViewById(R.id.layoutPlay)).setVisibility(View.VISIBLE);
+        ((MainActivity)getActivity()).playMusic(songInfos,position);
     }
 
     private class LoadListMusicTask extends AsyncTask<String,Void,ArrayList<SongInfo>> {

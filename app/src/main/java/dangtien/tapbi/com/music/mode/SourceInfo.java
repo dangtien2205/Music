@@ -2,11 +2,13 @@ package dangtien.tapbi.com.music.mode;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
+
 /**
  * Created by toannt on 25/11/2016.
  */
 
-public class SourceInfo {
+public class SourceInfo implements Serializable {
     @SerializedName("128")
     private String _128;
     @SerializedName("320")

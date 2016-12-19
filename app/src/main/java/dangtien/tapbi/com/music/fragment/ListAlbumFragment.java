@@ -9,10 +9,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,30 +28,26 @@ import dangtien.tapbi.com.music.mode.AlbumResponse;
  * Created by TienBi on 21/09/2016.
  */
 public class ListAlbumFragment extends Fragment implements AdapterView.OnItemClickListener {
-    public static String ID="id";
+    public static String ID = "id";
     private AlbumAdapter albumAdapter;
-    private static final String URL1 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:13,%22start%22:0,%22sort%22:%22total_play%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
-    private static final String URL2 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:13,%22start%22:0,%22sort%22:%22release_date%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
-    private static final String URL3 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:13,%22start%22:0,%22sort%22:%22hot%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
+    private static final String URL1 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:9,%22start%22:0,%22sort%22:%22total_play%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
+    private static final String URL2 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:9,%22start%22:0,%22sort%22:%22release_date%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
+    private static final String URL3 = "http://api.mp3.zing.vn/api/mobile/playlist/getplaylistbygenre?requestdata={%22length%22:15,%22id%22:9,%22start%22:0,%22sort%22:%22hot%22}&keycode=b319bd16be6d049fdb66c0752298ca30&fromvn=true";
     private String ur;
     private ArrayList<AlbumInfo> albumInfos;
     private GridView gr;
+    private TextView txtError;
 
-    public void setOnClickItemAlbum(OnClickItemAlbum onClickItemAlbum) {
-        this.onClickItemAlbum = onClickItemAlbum;
-    }
-
-    private OnClickItemAlbum onClickItemAlbum;
     public ListAlbumFragment(int n) {
-        switch (n){
+        switch (n) {
             case 1:
-                ur=URL1;
+                ur = URL1;
                 break;
             case 2:
-                ur=URL2;
+                ur = URL2;
                 break;
             case 3:
-                ur=URL3;
+                ur = URL3;
                 break;
             default:
                 break;
@@ -61,16 +57,17 @@ public class ListAlbumFragment extends Fragment implements AdapterView.OnItemCli
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view=inflater.inflate(R.layout.layout_fragment_list_album,container,false);
+        View view = inflater.inflate(R.layout.layout_fragment_list_album, container, false);
         return view;
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        gr =(GridView) view.findViewById(R.id.grvAlbum);
-        albumInfos=new ArrayList<>();
-        albumAdapter=new AlbumAdapter(App.getContext(),albumInfos);
+        gr = (GridView) view.findViewById(R.id.grvAlbum);
+        albumInfos = new ArrayList<>();
+        albumAdapter = new AlbumAdapter(App.getContext(), albumInfos);
+        txtError = (TextView)view.findViewById(R.id.txtError);
         gr.setAdapter(albumAdapter);
         gr.setOnItemClickListener(this);
         new LoadAblumTask().execute(ur);
@@ -78,13 +75,11 @@ public class ListAlbumFragment extends Fragment implements AdapterView.OnItemCli
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//        onClickItemAlbum.OnClick(albumInfos.get(position).getPlaylist_id());
-        SongFragment songFragment = new SongFragment(albumInfos.get(position).getPlaylist_id()) ;
-        ((MainActivity)getActivity()).replaceFragment(songFragment);
+        SongFragment songFragment = new SongFragment(albumInfos.get(position).getPlaylist_id());
+        ((MainActivity) getActivity()).replaceFragment(songFragment);
     }
 
-
-    private class LoadAblumTask extends AsyncTask<String,Void,ArrayList<AlbumInfo>> {
+    private class LoadAblumTask extends AsyncTask<String, Void, ArrayList<AlbumInfo>> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -96,12 +91,11 @@ public class ListAlbumFragment extends Fragment implements AdapterView.OnItemCli
             try {
                 Gson gson = new Gson();
                 URL url = new URL(params[0]);
-                InputStreamReader inputStreamReader = new InputStreamReader(url.openStream(),"UTF-8");
-                AlbumResponse response = gson.fromJson(inputStreamReader,AlbumResponse.class);
+                InputStreamReader inputStreamReader = new InputStreamReader(url.openStream(), "UTF-8");
+                AlbumResponse response = gson.fromJson(inputStreamReader, AlbumResponse.class);
                 ArrayList<AlbumInfo> results = response.getAlbumInfos();
                 return results;
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
             }
             return null;
         }
@@ -109,12 +103,13 @@ public class ListAlbumFragment extends Fragment implements AdapterView.OnItemCli
         @Override
         protected void onPostExecute(ArrayList<AlbumInfo> list) {
             super.onPostExecute(list);
-            albumInfos.addAll(list);
-            albumAdapter.notifyDataSetChanged();
+            if (list==null){
+                gr.setVisibility(View.GONE);
+                txtError.setVisibility(View.VISIBLE);
+            }else {
+                albumInfos.addAll(list);
+                albumAdapter.notifyDataSetChanged();
+            }
         }
-    }
-
-    public interface OnClickItemAlbum{
-        void OnClick(String id);
     }
 }
