@@ -11,14 +11,14 @@
         android:layout_height="0dp"
         android:layout_weight="1">
     </RelativeLayout>
+
     <TableRow
         android:id="@+id/layoutPlay"
         android:layout_width="match_parent"
         android:background="#37474F"
         android:visibility="gone"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:layout_alignParentBottom="true">
+        android:gravity="center_vertical">
         <de.hdodenhof.circleimageview.CircleImageView
             android:layout_weight="1"
             android:id="@+id/civCover"
@@ -49,7 +49,8 @@
             android:layout_weight="1"
             android:id="@+id/civBack"
             android:src="@drawable/ic_skip_previous_black_24dp"
-            android:layout_width="70dp"
+            android:layout_width="80dp"
+            android:layout_margin="8dp"
             app:civ_fill_color="@android:color/white"
             app:civ_border_color="#000000"
             app:civ_border_width="1dp" />
@@ -57,8 +58,8 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:layout_weight="2"
             android:id="@+id/civPlay"
-            android:layout_width="140dp"
-            android:layout_height="54dp"
+            android:layout_width="150dp"
+            android:layout_height="64dp"
             android:src="@drawable/ic_av_pause_over_video_large"
             app:civ_border_color="#00000000"
             app:civ_border_width="1dp" />
@@ -66,7 +67,8 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:layout_weight="1"
             android:id="@+id/civNext"
-            android:layout_width="70dp"
+            android:layout_width="80dp"
+            android:layout_margin="8dp"
             app:civ_fill_color="@android:color/white"
             app:civ_border_color="#000000"
             android:src="@drawable/ic_skip_next_black_24dp"

@@ -49,16 +49,17 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-         <de.hdodenhof.circleimageview.CircleImageView
-             android:layout_margin="16dp"
-             android:layout_weight="3"
-             android:id="@+id/civ_image_cover"
-             android:layout_height="match_parent"
-             android:layout_width="match_parent"
-             android:src="@drawable/tl"
-             app:civ_border_color="#00000000"
-             app:civ_border_width="1dp" />
-         <TableRow
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_margin="16dp"
+            android:layout_weight="3"
+            android:id="@+id/civ_image_cover"
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            app:civ_border_color="#00000000"
+            app:civ_border_width="1dp" />
+
+        <TableRow
              android:layout_width="match_parent"
              android:layout_height="wrap_content"
              android:orientation="horizontal"

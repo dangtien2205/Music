@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="128dp"
+    android:background="#00000000"
+    android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/img_avatar_no"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:scaleType="centerCrop"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"/>
+
+    <LinearLayout
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:id="@+id/buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:divider="?android:listDivider"
+        android:layout_toRightOf="@+id/img_avatar_no"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:showDividers="middle"
+        android:dividerPadding="12dp">
+        <ImageView
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:id="@+id/civ_back_no"
+            android:src="@drawable/pre"
+            android:layout_width="70dp" />
+
+        <ImageView
+            android:id="@+id/civ_pause_no"
+            android:layout_weight="1"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:src="@drawable/pause"/>
+
+        <ImageView
+            android:layout_height="32dp"
+            android:layout_weight="1"
+            android:id="@+id/civ_next_no"
+            android:layout_width="70dp"
+            android:src="@drawable/next"
+            android:layout_marginRight="8dp"/>
+    </LinearLayout>
+    <ImageView
+        android:background="?android:dividerHorizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="1.0px"
+        android:layout_toRightOf="@id/img_avatar_no"
+        android:layout_above="@+id/buttons"
+        android:layout_alignParentRight="true" />
+    <ImageView
+        android:id="@+id/img_close"
+        android:padding="8dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/i_close"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true" />
+    <LinearLayout
+        android:layout_gravity="center_vertical"
+        android:orientation="vertical"
+        android:id="@+id/layout_no"
+        android:paddingTop="8.0dip"
+        android:layout_marginLeft="16dp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/img_close"
+        android:layout_toRightOf="@id/img_avatar_no"
+        android:layout_alignParentTop="true">
+        <TextView
+            android:textColor="@android:color/white"
+            android:text="All off me"
+            android:fontFamily="serif"
+            android:textSize="14sp"
+            android:layout_gravity="start"
+            android:id="@+id/txt_name_no"
+            android:focusable="true"
+            android:fadingEdge="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            />
+
+        <TextView
+            android:textColor="@android:color/white"
+            android:ellipsize="marquee"
+            android:layout_gravity="start"
+            android:textSize="12sp"
+            android:fontFamily="serif"
+            android:text="John Lengh"
+            android:id="@+id/txt_artist_no"
+            android:fadingEdge="horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            />
+    </LinearLayout>
+</RelativeLayout>

@@ -47,26 +47,22 @@ public class MusicPlayer {
         this.songInfos = songInfos;
         position = pos;
     }
-
-    public void setup() {
+    public void play() {
         try {
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setLooping(isLoop);
             mediaPlayer.setDataSource(App.getContext(), Uri.parse(getSong().getSource().get_128()));
+            mediaPlayer.prepareAsync();
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mediaPlayer.start();
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public void play() {
-        mediaPlayer.prepareAsync();
-        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                mediaPlayer.start();
-            }
-        });
         state = PLAYER_PLAY;
     }
 
@@ -114,7 +110,6 @@ public class MusicPlayer {
                 position++;
             }
         }
-        setup();
         play();
     }
 
@@ -132,7 +127,6 @@ public class MusicPlayer {
                 position--;
             }
         }
-        setup();
         play();
     }
 

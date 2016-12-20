@@ -1,10 +1,17 @@
 package dangtien.tapbi.com.music.activity;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.animation.Animation;
@@ -13,6 +20,10 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +36,11 @@ import dangtien.tapbi.com.music.App;
 import dangtien.tapbi.com.music.R;
 import dangtien.tapbi.com.music.manager.MusicPlayer;
 import dangtien.tapbi.com.music.mode.SongInfo;
+import dangtien.tapbi.com.music.service.ServiceMedia;
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static dangtien.tapbi.com.music.service.ServiceMedia.CHANGE_ACTION;
+import static dangtien.tapbi.com.music.service.ServiceMedia.PLAY_ACTION;
 
 public class MusicPlayerActivity extends AppCompatActivity implements View.OnClickListener, SeekBar.OnSeekBarChangeListener {
     private CircleImageView imageSong;
@@ -40,6 +55,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
     private SeekBar seekBar;
     private Handler handler;
     private SongInfo songInfo;
+    private ServiceMedia mService;
+    private BroadCastMusicPlayer broadCast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +66,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         initializeComponent();
         initializeListener();
         initializeData();
+
+        handlerService();
     }
 
     private void initializeComponent() {
@@ -80,22 +99,28 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         Intent intent = getIntent();
         songInfo = musicPlayer.getSong();
         updateUI(songInfo);
-        Animation animation = AnimationUtils.loadAnimation(MusicPlayerActivity.this, R.anim.rotate);
-        imageSong.startAnimation(animation);
-
         if (intent.getAction().equals("NEW_MUSIC")) {
             musicPlayer.play();
         }
-        if (musicPlayer.isLoop())
-            imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_one);
-        else
-            imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_off);
-        if (musicPlayer.isDisorder())
-            imageDisorder.setImageResource(R.drawable.ic_player_v4_shuffle_on);
-        else
-            imageDisorder.setImageResource(R.drawable.ic_player_v4_shuffle_off);
     }
+    private ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            ServiceMedia.MyBinderMedia media = (ServiceMedia.MyBinderMedia) iBinder;
+            mService = media.getServiceMedia();
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
 
+        }
+    };
+
+    private void handlerService() {
+        Intent intent = new Intent();
+        intent.setClass(this, ServiceMedia.class);
+        startService(intent);
+        bindService(intent, conn, BIND_AUTO_CREATE);
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -103,17 +128,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
                 finish();
                 break;
             case R.id.btn_play:
-                switch (musicPlayer.getState()) {
-                    case MusicPlayer.PLAYER_PAUSE:
-                        musicPlayer.resume();
-                        imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
-                        break;
-                    case MusicPlayer.PLAYER_PLAY:
-                        musicPlayer.pause();
-                        imagePlay.setImageResource(R.drawable.ic_player_v4_play);
-                        break;
-                    default:
-                        break;
+                if (mService != null) {
+                    mService.handlerPlayAndPause();
                 }
                 break;
             case R.id.btn_loop:
@@ -124,12 +140,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
                     imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_off);
                 break;
             case R.id.btn_next:
-                musicPlayer.nextSong();
-                updateUI(musicPlayer.getSong());
+                if (mService != null) {
+                    mService.handlerNext();
+                }
                 break;
             case R.id.btn_previous:
-                musicPlayer.previousSong();
-                updateUI(musicPlayer.getSong());
+                if (mService != null) {
+                    mService.handlerPrev();
+                }
                 break;
             case R.id.btn_disorder:
                 musicPlayer.setDisorder();
@@ -139,10 +157,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
                     imageDisorder.setImageResource(R.drawable.ic_player_v4_shuffle_off);
                 break;
             case R.id.txt_128:
-                    downloadSong(songInfo.getSource().get_128(),songInfo.getTitle());
+                downloadSong(songInfo.getSource().get_128(), songInfo.getTitle());
                 break;
             case R.id.txt_320:
-                    downloadSong(songInfo.getSource().get_320(),songInfo.getTitle());
+                downloadSong(songInfo.getSource().get_320(), songInfo.getTitle());
                 break;
             default:
                 break;
@@ -150,9 +168,15 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
     }
 
     public void updateUI(SongInfo songInfo) {
-//        String linkApi="http://image.mp3.zdn.vn/";
-//        Glide.with(this).load(linkApi+songInfo.getThumbnail())
-//                .into(imageSong);
+        String linkApi = "http://image.mp3.zdn.vn/";
+        Glide.with(this).load(linkApi + songInfo.getThumbnail()).asBitmap().into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                imageSong.setImageBitmap(resource);
+                Animation animation = AnimationUtils.loadAnimation(MusicPlayerActivity.this, R.anim.rotate);
+                imageSong.startAnimation(animation);
+            }
+        });
         txtNameSinger.setText(songInfo.getArtist());
         txtNameSong.setText(songInfo.getTitle());
         int minute = songInfo.getDuration() / 60;
@@ -183,10 +207,10 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             txtBegin.setText(milliSecondsToTimer(currentDuration) + "");
             int progress = (getProgressPercentage(currentDuration, totalDuration));
             seekBar.setProgress(progress);
-            if (currentDuration == totalDuration) {
-                musicPlayer.nextSong();
-                updateUI(musicPlayer.getSong());
-            }
+//            if (currentDuration == totalDuration) {
+//                musicPlayer.nextSong();
+//                updateUI(musicPlayer.getSong());
+//            }
             handler.postDelayed(this, 100);
         }
     };
@@ -239,7 +263,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
     }
 
     @Override
@@ -260,7 +283,8 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         DownLoadMusicTask downLoadMusicTask = new DownLoadMusicTask(name);
         downLoadMusicTask.execute(path);
     }
-    private class DownLoadMusicTask extends AsyncTask<String,Void, Void> {
+
+    private class DownLoadMusicTask extends AsyncTask<String, Void, Void> {
         private HttpURLConnection connection;
         private String name;
 
@@ -276,16 +300,13 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
                 connection.connect();
                 File sdcard = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Environment.DIRECTORY_DOWNLOADS);
                 File file = new File(sdcard, name + ".mp3");
-
                 FileOutputStream fileOutput = new FileOutputStream(file);
                 InputStream is = connection.getInputStream();
                 int count = 0;
                 byte[] data = new byte[1024];
-
                 while ((count = is.read(data)) != -1) {
-                    fileOutput.write(data, 0,count);
+                    fileOutput.write(data, 0, count);
                 }
-
                 is.close();
                 connection.disconnect();
             } catch (IOException e) {
@@ -297,7 +318,57 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Toast.makeText(App.getContext(),"Tải Thành Công",Toast.LENGTH_SHORT).show();
+            Toast.makeText(App.getContext(), "Tải Thành Công", Toast.LENGTH_SHORT).show();
         }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkUI();
+        broadCast = new BroadCastMusicPlayer();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(CHANGE_ACTION);
+        intentFilter.addAction(PLAY_ACTION);
+        registerReceiver(broadCast, intentFilter);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(broadCast);
+    }
+
+    private class BroadCastMusicPlayer extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            switch (action) {
+                case CHANGE_ACTION:
+                    updateUI(MusicPlayer.getInstance().getSong());
+                    break;
+                case PLAY_ACTION:
+                    if (musicPlayer.getMediaPlayer().isPlaying())
+                        imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
+                    else
+                        imagePlay.setImageResource(R.drawable.ic_player_v4_play);
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void checkUI(){
+        if (musicPlayer.getMediaPlayer().isPlaying())
+            imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
+        else
+            imageLoop.setImageResource(R.drawable.ic_player_v4_play);
+        if (musicPlayer.isLoop())
+            imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_one);
+        else
+            imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_off);
+        if (musicPlayer.isDisorder())
+            imageDisorder.setImageResource(R.drawable.ic_player_v4_shuffle_on);
+        else
+            imageDisorder.setImageResource(R.drawable.ic_player_v4_shuffle_off);
     }
 }
