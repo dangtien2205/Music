@@ -23,7 +23,7 @@ public class MusicPlayer {
     private boolean isLoop;
     private boolean isDisorder;
     private ArrayList<SongInfo> songInfos;
-    private int position;
+    private int position = -1;
 
     public static final MusicPlayer getInstance() {
         if (instance == null) {
@@ -131,6 +131,8 @@ public class MusicPlayer {
     }
 
     public SongInfo getSong() {
+        if (position==-1)
+            return null;
         return songInfos.get(position);
     }
 

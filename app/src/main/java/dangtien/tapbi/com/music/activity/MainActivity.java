@@ -7,14 +7,21 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.util.ArrayList;
 
@@ -25,11 +32,10 @@ import dangtien.tapbi.com.music.mode.SongInfo;
 import dangtien.tapbi.com.music.service.ServiceMedia;
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static dangtien.tapbi.com.music.R.id.txtArtistPlay;
 import static dangtien.tapbi.com.music.service.ServiceMedia.CHANGE_ACTION;
 import static dangtien.tapbi.com.music.service.ServiceMedia.PLAY_ACTION;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private AlbumFragment albumFragment;
     private ServiceMedia mService;
     private boolean isFisrt;
@@ -40,6 +46,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private CircleImageView civNext;
     private BroadcastReceiver broadCast;
     private LinearLayout layoutPlay;
+    private CircleImageView civCover;
+    private Animation animation;
+    private MusicPlayer musicPlayer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,26 +63,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initControls() {
         if (albumFragment == null) {
             albumFragment = new AlbumFragment();
-            isFisrt=false;
+            isFisrt = false;
         }
         replaceFragment(albumFragment);
-        txtTitle=(TextView)findViewById(R.id.txtTitlePlay);
-        txtArtist=(TextView)findViewById(R.id.txtArtistPlay);
-        civPre =(CircleImageView)findViewById(R.id.civBack);
-        civPause =(CircleImageView)findViewById(R.id.civPlay);
-        civNext =(CircleImageView)findViewById(R.id.civNext);
+        txtTitle = (TextView) findViewById(R.id.txtTitlePlay);
+        txtArtist = (TextView) findViewById(R.id.txtArtistPlay);
+        civPre = (CircleImageView) findViewById(R.id.civBack);
+        civPause = (CircleImageView) findViewById(R.id.civPlay);
+        civNext = (CircleImageView) findViewById(R.id.civNext);
+        civCover = (CircleImageView) findViewById(R.id.civCover);
+        layoutPlay = (LinearLayout) findViewById(R.id.layoutPlay);
+        animation = AnimationUtils.loadAnimation(MainActivity.this, R.anim.rotate);
+        musicPlayer = MusicPlayer.getInstance();
     }
 
     private void initEvents() {
         civPre.setOnClickListener(this);
         civPause.setOnClickListener(this);
         civNext.setOnClickListener(this);
+        layoutPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+                intent.setAction("OLD_MUSIC_0");
+                startActivity(intent);
+            }
+        });
     }
 
     public void replaceFragment(Fragment fragment) {
-        Fragment f= getSupportFragmentManager().findFragmentByTag(fragment.getClass().getName());
-        if (f!=null) {
-            if (fragment.isVisible()){
+        Fragment f = getSupportFragmentManager().findFragmentByTag(fragment.getClass().getName());
+        if (f != null) {
+            if (fragment.isVisible()) {
                 return;
             }
             getSupportFragmentManager().beginTransaction()
@@ -80,19 +102,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .commit();
             return;
         }
-        if (isFisrt==false) {
+        if (isFisrt == false) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.layout_content, fragment, fragment.getClass().getName())
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
-        }else {
+        } else {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.layout_content, fragment, fragment.getClass().getName())
                     .addToBackStack(null)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     .commit();
         }
-        isFisrt=true;
+        isFisrt = true;
     }
 
     private ServiceConnection conn = new ServiceConnection() {
@@ -101,6 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ServiceMedia.MyBinderMedia media = (ServiceMedia.MyBinderMedia) iBinder;
             mService = media.getServiceMedia();
         }
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
 
@@ -114,31 +137,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bindService(intent, conn, BIND_AUTO_CREATE);
     }
 
-    public void playMusic(ArrayList<SongInfo> songInfos,int postion){
-        layoutPlay = (LinearLayout)findViewById(R.id.layoutPlay);
+    public void playMusic(ArrayList<SongInfo> songInfos, int postion) {
         SongInfo songInfo = songInfos.get(postion);
-        ((TextView)findViewById(R.id.txtTitlePlay)).setText(songInfo.getTitle());
-        ((TextView)findViewById(txtArtistPlay)).setText(songInfo.getArtist());
         layoutPlay.setVisibility(View.VISIBLE);
-        layoutPlay.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this,MusicPlayerActivity.class);
-                intent.setAction("OLD_MUSIC_0");
-                startActivity(intent);
-            }
-        });
-        Intent intent = new Intent(MainActivity.this,MusicPlayerActivity.class);
+        updateUI(songInfo);
+        Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
         intent.setAction("NEW_MUSIC");
         if (mService != null) {
-            mService.playAudioClickItem(songInfos,postion);
+            mService.playAudioClickItem(songInfos, postion);
         }
         startActivity(intent);
     }
 
     @Override
     public void onBackPressed() {
-        if (getFragmentManager().getBackStackEntryCount() > 0 ){
+        if (getFragmentManager().getBackStackEntryCount() > 0) {
             getFragmentManager().popBackStack();
         } else {
             super.onBackPressed();
@@ -164,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.civNext:
                 if (mService != null) {
                     mService.handlerNext();
@@ -194,10 +207,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     updateUI(MusicPlayer.getInstance().getSong());
                     break;
                 case PLAY_ACTION:
-                    if (MusicPlayer.getInstance().getMediaPlayer().isPlaying())
+                    if (musicPlayer.getState() == MusicPlayer.PLAYER_PLAY) {
                         civPause.setImageResource(R.drawable.ic_av_pause_over_video_large);
-                    else
+                        civCover.startAnimation(animation);
+                    } else {
                         civPause.setImageResource(R.drawable.ic_av_play_over_video_large);
+                        civCover.clearAnimation();
+                    }
                     break;
                 default:
                     break;
@@ -208,18 +224,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void updateUI(SongInfo song) {
         txtTitle.setText(song.getTitle());
         txtArtist.setText(song.getArtist());
+        String linkApi = "http://image.mp3.zdn.vn/";
+        Glide.with(this).load(linkApi + song.getThumbnail()).asBitmap().into(new SimpleTarget<Bitmap>() {
+            @Override
+            public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
+                civCover.setImageBitmap(resource);
+            }
+        });
+        if (musicPlayer.getState() == MusicPlayer.PLAYER_PLAY) {
+            civPause.setImageResource(R.drawable.ic_av_pause_over_video_large);
+            civCover.startAnimation(animation);
+        } else {
+            civPause.setImageResource(R.drawable.ic_av_play_over_video_large);
+            civCover.clearAnimation();
+        }
     }
 
-    private void checkUI(){
-        MusicPlayer musicPlayer = MusicPlayer.getInstance();
-        if(musicPlayer.getMediaPlayer()==null){
+    private void checkUI() {
+        if (musicPlayer.getState() == MusicPlayer.PLAYER_IDLE) {
             return;
         }
-        layoutPlay.setVisibility(View.VISIBLE);
-        if (MusicPlayer.getInstance().getMediaPlayer().isPlaying())
+
+        //layoutPlay.setVisibility(View.VISIBLE);
+        if (musicPlayer.getState() == MusicPlayer.PLAYER_PLAY) {
             civPause.setImageResource(R.drawable.ic_av_pause_over_video_large);
-        else
+            civCover.startAnimation(animation);
+        } else {
             civPause.setImageResource(R.drawable.ic_av_play_over_video_large);
+            civCover.clearAnimation();
+        }
         updateUI(MusicPlayer.getInstance().getSong());
     }
 }

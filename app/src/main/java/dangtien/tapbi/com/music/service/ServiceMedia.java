@@ -64,9 +64,12 @@ public class ServiceMedia extends Service {
         if (PLAY_ACTION_NO.equals(intent.getAction())) {
             handlerPlayAndPause();
         } else if (STOP_FOREGROUND_ACTION.equals(intent.getAction())) {
+            Intent intent1=new Intent();
+            intent1.setAction(PLAY_ACTION);
+            sendBroadcast(intent1);
             stopForeground(false);
             stopService(intent);
-            MusicPlayer.getInstance().stop();
+            musicPlayer.pause();
             notification.cancel(ID_NO_MEDIA);
         } else if (NEXT_ACTION_NO.equals(intent.getAction())) {
             handlerNext();
@@ -129,6 +132,8 @@ public class ServiceMedia extends Service {
         views.setTextViewText(R.id.txt_artist_no,song.getArtist());
         smallViews.setTextViewText(R.id.txt_name_no_small,song.getTitle());
         smallViews.setTextViewText(R.id.txt_artist_no_small,song.getArtist());
+        views.setImageViewResource(R.id.civ_pause_no, R.drawable.pause);
+        smallViews.setImageViewResource(R.id.civ_pause_no_small, R.drawable.pause);
         String linkApi = "http://image.mp3.zdn.vn/";
         Glide.with(this).load(linkApi + song.getThumbnail()).asBitmap().into(new SimpleTarget<Bitmap>() {
             @Override
@@ -189,5 +194,6 @@ public class ServiceMedia extends Service {
         builder.setContentIntent(pendingIntent);
         mNotification = builder.build();
         startForeground(ID_NO_MEDIA, mNotification);
+
     }
 }

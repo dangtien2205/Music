@@ -57,6 +57,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
     private SongInfo songInfo;
     private ServiceMedia mService;
     private BroadCastMusicPlayer broadCast;
+    private Animation animation ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +96,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
     }
 
     private void initializeData() {
+        animation = AnimationUtils.loadAnimation(MusicPlayerActivity.this, R.anim.rotate);
         musicPlayer = MusicPlayer.getInstance();
         Intent intent = getIntent();
         songInfo = musicPlayer.getSong();
@@ -103,12 +105,14 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             musicPlayer.play();
         }
     }
+
     private ServiceConnection conn = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             ServiceMedia.MyBinderMedia media = (ServiceMedia.MyBinderMedia) iBinder;
             mService = media.getServiceMedia();
         }
+
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
 
@@ -121,6 +125,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         startService(intent);
         bindService(intent, conn, BIND_AUTO_CREATE);
     }
+
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -142,11 +147,15 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             case R.id.btn_next:
                 if (mService != null) {
                     mService.handlerNext();
+                }else {
+                    handlerService();
                 }
                 break;
             case R.id.btn_previous:
                 if (mService != null) {
                     mService.handlerPrev();
+                }else {
+                    handlerService();
                 }
                 break;
             case R.id.btn_disorder:
@@ -173,7 +182,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             @Override
             public void onResourceReady(Bitmap resource, GlideAnimation<? super Bitmap> glideAnimation) {
                 imageSong.setImageBitmap(resource);
-                Animation animation = AnimationUtils.loadAnimation(MusicPlayerActivity.this, R.anim.rotate);
                 imageSong.startAnimation(animation);
             }
         });
@@ -187,6 +195,13 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
         if (second < 10) time += "0" + second;
         else time += second;
         txtTimeTotal.setText(time);
+        if (musicPlayer.getState()==MusicPlayer.PLAYER_PLAY) {
+            imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
+            imageSong.startAnimation(animation);
+        } else {
+            imagePlay.setImageResource(R.drawable.ic_player_v4_play);
+            imageSong.clearAnimation();
+        }
 
         updateTime();
     }
@@ -207,10 +222,6 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             txtBegin.setText(milliSecondsToTimer(currentDuration) + "");
             int progress = (getProgressPercentage(currentDuration, totalDuration));
             seekBar.setProgress(progress);
-//            if (currentDuration == totalDuration) {
-//                musicPlayer.nextSong();
-//                updateUI(musicPlayer.getSong());
-//            }
             handler.postDelayed(this, 100);
         }
     };
@@ -321,6 +332,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
             Toast.makeText(App.getContext(), "Tải Thành Công", Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -347,21 +359,28 @@ public class MusicPlayerActivity extends AppCompatActivity implements View.OnCli
                     updateUI(MusicPlayer.getInstance().getSong());
                     break;
                 case PLAY_ACTION:
-                    if (musicPlayer.getMediaPlayer().isPlaying())
+                    if (musicPlayer.getState()==MusicPlayer.PLAYER_PLAY) {
                         imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
-                    else
+                        imageSong.startAnimation(animation);
+                    }
+                    else {
                         imagePlay.setImageResource(R.drawable.ic_player_v4_play);
+                        imageSong.clearAnimation();
+                    }
                 default:
                     break;
             }
         }
     }
 
-    private void checkUI(){
-        if (musicPlayer.getMediaPlayer().isPlaying())
+    private void checkUI() {
+        if (musicPlayer.getState()==MusicPlayer.PLAYER_PLAY) {
             imagePlay.setImageResource(R.drawable.ic_player_v4_pause);
-        else
-            imageLoop.setImageResource(R.drawable.ic_player_v4_play);
+            imageSong.startAnimation(animation);
+        } else {
+            imagePlay.setImageResource(R.drawable.ic_player_v4_play);
+            imageSong.clearAnimation();
+        }
         if (musicPlayer.isLoop())
             imageLoop.setImageResource(R.drawable.ic_player_v4_repeat_one);
         else
